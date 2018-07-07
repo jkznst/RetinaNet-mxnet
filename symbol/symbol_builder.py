@@ -1,5 +1,6 @@
 import mxnet as mx
 from symbol.common import multi_layer_feature, multibox_layer
+from symbol.resnet import get_resnet_conv, get_resnet_conv_down
 
 
 def import_module(module_name):
@@ -9,7 +10,7 @@ def import_module(module_name):
     sys.path.append(os.path.dirname(__file__))
     return importlib.import_module(module_name)
 
-def get_symbol_train(network, num_classes, from_layers, num_filters, strides, pads,
+def get_symbol_train(network, num_classes, num_layers, from_layers, num_filters, strides, pads,
                      sizes, ratios, normalizations=-1, steps=[], min_filter=128,
                      nms_thresh=0.5, force_suppress=False, nms_topk=400, minimum_negative_samples=0, **kwargs):
     """Build network symbol for training SSD
@@ -63,14 +64,14 @@ def get_symbol_train(network, num_classes, from_layers, num_filters, strides, pa
     mx.Symbol
 
     """
+    data = mx.sym.Variable('data')
     label = mx.sym.Variable('label')
-    body = import_module(network).get_symbol(num_classes=num_classes, **kwargs)
 
-    # FPN features
-    layers = multi_layer_feature(body, from_layers, num_filters, strides, pads,
-        min_filter=min_filter)
+    conv_feat = get_resnet_conv(data, num_layers)
+    conv_fpn_feat = get_resnet_conv_down(conv_feat)
+    conv_fpn_feat.reverse()    # [P3, P4, P5, P6, P7]
 
-    loc_preds, cls_preds, anchor_boxes = multibox_layer(layers, \
+    loc_preds, cls_preds, anchor_boxes = multibox_layer(conv_fpn_feat, \
         num_classes, sizes=sizes, ratios=ratios, normalization=normalizations, \
         num_channels=num_filters, clip=False, interm_layer=0, steps=steps)
     # now cls_preds are in shape of  batchsize x num_class x num_anchors

@@ -281,52 +281,52 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
     cls_conv1_weight = mx.symbol.Variable(name='cls_conv1_3x3_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_conv1_bias = mx.symbol.Variable(name='cls_conv1_3x3_bias',
-                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     cls_conv2_weight = mx.symbol.Variable(name='cls_conv2_3x3_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_conv2_bias = mx.symbol.Variable(name='cls_conv2_3x3_bias',
-                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     cls_conv3_weight = mx.symbol.Variable(name='cls_conv3_3x3_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_conv3_bias = mx.symbol.Variable(name='cls_conv3_3x3_bias',
-                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     cls_conv4_weight = mx.symbol.Variable(name='cls_conv4_3x3_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_conv4_bias = mx.symbol.Variable(name='cls_conv4_3x3_bias',
-                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                            init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     cls_score_weight = mx.symbol.Variable(name='cls_score_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_score_bias = mx.symbol.Variable(name='cls_score_bias',
-                                        init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '2.0'})
+                                        init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '1.0'})
 
     box_conv1_weight = mx.symbol.Variable(name='box_conv1_weight',
                                           init=mx.init.Normal(sigma=0.01))
     box_conv1_bias = mx.symbol.Variable(name='box_conv1_bias',
-                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     box_conv2_weight = mx.symbol.Variable(name='box_conv2_weight',
                                           init=mx.init.Normal(sigma=0.01))
     box_conv2_bias = mx.symbol.Variable(name='box_conv2_bias',
-                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     box_conv3_weight = mx.symbol.Variable(name='box_conv3_weight',
                                           init=mx.init.Normal(sigma=0.01))
     box_conv3_bias = mx.symbol.Variable(name='box_conv3_bias',
-                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     box_conv4_weight = mx.symbol.Variable(name='box_conv4_weight',
                                           init=mx.init.Normal(sigma=0.01))
     box_conv4_bias = mx.symbol.Variable(name='box_conv4_bias',
-                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '2.0'})
+                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     box_pred_weight = mx.symbol.Variable(name='box_pred_weight',
                                          init=mx.init.Normal(sigma=0.01))
     box_pred_bias = mx.symbol.Variable(name='box_pred_bias',
-                                       init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '2.0'})
+                                       init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '1.0'})
 
     for k, from_layer in enumerate(from_layers):
         from_name = from_layer.name

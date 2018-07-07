@@ -8,6 +8,13 @@ Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. "Identity Mappings in Deep Re
 '''
 import mxnet as mx
 
+eps = 2e-5
+use_global_stats = True
+workspace = 512
+res_deps = {'50': (3, 4, 6, 3), '101': (3, 4, 23, 3), '152': (3, 8, 36, 3), '200': (3, 24, 36, 3)}
+units = res_deps['50']
+filter_list = [256, 512, 1024, 2048]
+
 def residual_unit(data, num_filter, stride, dim_match, name, bottle_neck=True, bn_mom=0.9, workspace=256, memonger=False):
     """Return ResNet Unit symbol for building ResNet
     Parameters
@@ -67,6 +74,85 @@ def residual_unit(data, num_filter, stride, dim_match, name, bottle_neck=True, b
             shortcut._set_attr(mirror_stage='True')
         return conv2 + shortcut
 
+
+def get_resnet_conv(data, num_layers):
+    units = res_deps[str(int(num_layers))]
+    # res1
+    data_bn = mx.sym.BatchNorm(data=data, fix_gamma=True, eps=eps, use_global_stats=use_global_stats, name='bn_data')
+    conv0   = mx.sym.Convolution(data=data_bn, num_filter=64, kernel=(7, 7), stride=(2, 2), pad=(3, 3),
+                               no_bias=True, name="conv0", workspace=workspace)
+    bn0   = mx.sym.BatchNorm(data=conv0, fix_gamma=False, eps=eps, use_global_stats=use_global_stats, name='bn0')
+    relu0 = mx.sym.Activation(data=bn0, act_type='relu', name='relu0')
+    pool0 = mx.symbol.Pooling(data=relu0, kernel=(3, 3), stride=(2, 2), pad=(1, 1), pool_type='max', name='pool0')
+
+    # res2
+    unit = residual_unit(data=pool0, num_filter=filter_list[0], stride=(1, 1), dim_match=False, name='stage1_unit1')
+    for i in range(2, units[0] + 1):
+        unit = residual_unit(data=unit, num_filter=filter_list[0], stride=(1, 1), dim_match=True,
+                             name='stage1_unit%s' % i)
+    conv_C2 = unit
+
+    # res3
+    unit = residual_unit(data=unit, num_filter=filter_list[1], stride=(2, 2), dim_match=False, name='stage2_unit1')
+    for i in range(2, units[1] + 1):
+        unit = residual_unit(data=unit, num_filter=filter_list[1], stride=(1, 1), dim_match=True,
+                             name='stage2_unit%s' % i)
+    conv_C3 = unit
+
+    # res4
+    unit = residual_unit(data=unit, num_filter=filter_list[2], stride=(2, 2), dim_match=False, name='stage3_unit1')
+    for i in range(2, units[2] + 1):
+        unit = residual_unit(data=unit, num_filter=filter_list[2], stride=(1, 1), dim_match=True,
+                             name='stage3_unit%s' % i)
+    conv_C4 = unit
+
+    # res5
+    unit = residual_unit(data=unit, num_filter=filter_list[3], stride=(2, 2), dim_match=False, name='stage4_unit1')
+    for i in range(2, units[3] + 1):
+        unit = residual_unit(data=unit, num_filter=filter_list[3], stride=(1, 1), dim_match=True,
+                             name='stage4_unit%s' % i)
+    conv_C5 = unit
+
+    conv_feat = [conv_C5, conv_C4, conv_C3]
+    return conv_feat
+
+
+def get_resnet_conv_down(conv_feat):
+    """
+    :param conv_feat: [C5, C4, C3]
+    :return: conv_fpn_feat: [P7, P6, P5, P4, P3]
+    """
+    C5 = conv_feat[0]
+    # C5 to P5, 1x1 dimension reduction to 256
+    P5 = mx.symbol.Convolution(data=C5, kernel=(1, 1), num_filter=256, name="P5_lateral")
+    P5_up = mx.symbol.UpSampling(P5, scale=2, sample_type='nearest', workspace=512, name='P5_upsampling', num_args=1)
+    P5 = mx.symbol.Convolution(data=P5, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P5")
+
+    # P5 2x upsampling + C4 = P4
+    P4_la   = mx.symbol.Convolution(data=conv_feat[1], kernel=(1, 1), num_filter=256, name="P4_lateral")
+    P5_clip = mx.symbol.Crop(*[P5_up, P4_la], name="P4_clip")
+    P4      = mx.sym.ElementWiseSum(*[P5_clip, P4_la], name="P4_sum")
+    P4_up = mx.symbol.UpSampling(P4, scale=2, sample_type='nearest', workspace=512, name='P4_upsampling', num_args=1)
+    P4      = mx.symbol.Convolution(data=P4, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P4")
+
+    # P4 2x upsampling + C3 = P3
+    P3_la   = mx.symbol.Convolution(data=conv_feat[2], kernel=(1, 1), num_filter=256, name="P3_lateral")
+    P4_clip = mx.symbol.Crop(*[P4_up, P3_la], name="P3_clip")
+    P3      = mx.sym.ElementWiseSum(*[P4_clip, P3_la], name="P3_sum")
+    P3      = mx.symbol.Convolution(data=P3, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P3")
+
+    # P6 2x subsampling C5
+    P6 = mx.symbol.Convolution(data=C5, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name='P6')
+
+    P6_relu = mx.symbol.Activation(P6, act_type='relu', name="P6_relu")
+    P7 = mx.symbol.Convolution(P6_relu, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name="P7")
+
+    conv_fpn_feat = dict()
+    conv_fpn_feat.update({"stride128":P7, "stride64":P6, "stride32":P5, "stride16":P4, "stride8":P3})
+
+    return conv_fpn_feat, [P7, P6, P5, P4, P3]
+
+
 def resnet(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=True, bn_mom=0.9, workspace=256, memonger=False):
     """Return ResNet symbol of
     Parameters
@@ -114,6 +200,7 @@ def resnet(units, num_stages, filter_list, num_classes, image_shape, bottle_neck
     flat = mx.symbol.Flatten(data=pool1)
     fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_classes, name='fc1')
     return mx.symbol.SoftmaxOutput(data=fc1, name='softmax')
+
 
 def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, **kwargs):
     """

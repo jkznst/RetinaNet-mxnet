@@ -18,7 +18,7 @@ def parse_args():
                         default="", type=str)
     parser.add_argument('--network', dest='network', type=str, default='resnet50',
                         help='which network to use')
-    parser.add_argument('--batch-size', dest='batch_size', type=int, default=32,
+    parser.add_argument('--batch-size', dest='batch_size', type=int, default=8,
                         help='training batch size')
     parser.add_argument('--resume', dest='resume', type=int, default=-1,
                         help='resume training from epoch n')
@@ -38,7 +38,7 @@ def parse_args():
                         default=240, type=int)
     parser.add_argument('--frequent', dest='frequent', help='frequency of logging',
                         default=20, type=int)
-    parser.add_argument('--data-shape', dest='data_shape', type=int, default=300,
+    parser.add_argument('--data-shape', dest='data_shape', type=int, default=512,
                         help='set image shape')
     parser.add_argument('--label-width', dest='label_width', type=int, default=350,
                         help='force padding label width to sync across train and validation')
@@ -121,6 +121,31 @@ if __name__ == '__main__':
     ctx = [mx.cpu()] if not ctx else ctx
     # class names if applicable
     class_names = parse_class_names(args)
+
+    if args.network == 'vgg16_reduced':
+        if not args.pretrained:
+            args.pretrained = 'model/vgg16_reduced-0001.params'
+        if not args.prefix:
+            args.prefix = 'out/vgg16_reduced'
+        args.freeze_pattern = ['conv1', 'conv2']
+    elif args.network == 'resnet50':
+        if not args.pretrained:
+            args.pretrained = 'model/resnet-50-0000.params'
+        if not args.prefix:
+            args.prefix = 'out/resnet50'
+        args.mean_r = 0.0
+        args.mean_g = 0.0
+        args.mean_b = 0.0
+        args.freeze_pattern = ['conv0', 'stage1', 'gamma', 'beta']
+    elif args.network == 'resnet101':
+        if not args.pretrained:
+            args.pretrained = 'model/resnet-101-0000.params'
+        if not args.prefix:
+            args.prefix = 'out/resnet101'
+        args.mean_r = 0.0
+        args.mean_g = 0.0
+        args.mean_b = 0.0
+        args.freeze_pattern = ['conv0', 'stage1', 'gamma', 'beta']
     # start training
     train_net(args.network, args.train_path,
               args.num_class, args.batch_size,

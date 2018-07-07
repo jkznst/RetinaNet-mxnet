@@ -103,6 +103,16 @@ def get_lr_scheduler(learning_rate, lr_refactor_step, lr_refactor_ratio,
         return (lr, lr_scheduler)
 
 
+def get_fixed_params(symbol, fixed_param_prefix=''):
+    fixed_param_names = []
+    if fixed_param_prefix:
+        for name in symbol.list_arguments():
+            for prefix in fixed_param_prefix:
+                if prefix in name:
+                    fixed_param_names.append(name)
+    return fixed_param_names
+
+
 def train_net(network, train_path, num_classes, batch_size,
               data_shape, mean_pixels, resume, finetune, pretrained, epoch,
               prefix, ctx, begin_epoch, end_epoch, frequent, learning_rate,
@@ -233,11 +243,12 @@ def train_net(network, train_path, num_classes, batch_size,
                            nms_thresh=nms_thresh, force_suppress=force_suppress, nms_topk=nms_topk, minimum_negative_samples=min_neg_samples)
 
     # define layers with fixed weight/bias
-    if freeze_layer_pattern.strip():
-        re_prog = re.compile(freeze_layer_pattern)
-        fixed_param_names = [name for name in net.list_arguments() if re_prog.match(name)]
-    else:
-        fixed_param_names = None
+    # if freeze_layer_pattern.strip():
+    #     re_prog = re.compile(freeze_layer_pattern)
+    #     fixed_param_names = [name for name in net.list_arguments() if re_prog.match(name)]
+    # else:
+    #     fixed_param_names = None
+    fixed_param_names = get_fixed_params(net, freeze_layer_pattern)
 
     # load pretrained or resume from previous state
     ctx_str = '(' + ','.join([str(c) for c in ctx]) + ')'
