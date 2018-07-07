@@ -68,7 +68,7 @@ def get_symbol_train(network, num_classes, num_layers, from_layers, num_filters,
     label = mx.sym.Variable('label')
 
     conv_feat = get_resnet_conv(data, num_layers)
-    conv_fpn_feat = get_resnet_conv_down(conv_feat)
+    _, conv_fpn_feat = get_resnet_conv_down(conv_feat)
     conv_fpn_feat.reverse()    # [P3, P4, P5, P6, P7]
 
     loc_preds, cls_preds, anchor_boxes = multibox_layer(conv_fpn_feat, \
