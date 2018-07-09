@@ -368,11 +368,28 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
         # TODO: better way to shape the anchors??
         size = sizes[k]
         assert len(size) > 0, "must provide at least one size"
-        size_str = "(" + ",".join([str(x) for x in size]) + ")"
+        # size_str = "(" + ",".join([str(x) for x in size]) + ")"
         ratio = ratios[k]
         assert len(ratio) > 0, "must provide at least one ratio"
-        ratio_str = "(" + ",".join([str(x) for x in ratio]) + ")"
-        num_anchors = len(size) -1 + len(ratio)
+        # ratio_str = "(" + ",".join([str(x) for x in ratio]) + ")"
+        num_anchors = len(size) * len(ratio)
+
+        # create anchor generation layer
+        if steps:
+            step = (steps[k], steps[k])
+        else:
+            step = '(-1.0, -1.0)'
+
+        anchors = []
+        for r in ratio:
+            anchor = mx.contrib.symbol.MultiBoxPrior(from_layer, sizes=size, ratios=r, \
+                                                  clip=clip, steps=step)
+            anchor = mx.symbol.reshape(anchor, shape=(0, -1, len(size), 4))
+            anchors.append(anchor)
+
+        anchors = mx.symbol.concat(*anchors, dim=2)
+        anchors = mx.symbol.Flatten(data=anchors)
+        anchor_layers.append(anchors)
 
         # create location prediction layer
         num_loc_pred = num_anchors * 4
@@ -473,17 +490,6 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
         cls_pred = mx.symbol.transpose(cls_pred, axes=(0,2,3,1))
         cls_pred = mx.symbol.Flatten(data=cls_pred)
         cls_pred_layers.append(cls_pred)
-
-        # create anchor generation layer
-        if steps:
-            step = (steps[k], steps[k])
-        else:
-            step = '(-1.0, -1.0)'
-
-        anchors = mx.contrib.symbol.MultiBoxPrior(from_layer, sizes=size_str, ratios=ratio_str, \
-            clip=clip, name="{}_anchors".format(from_name), steps=step)
-        anchors = mx.symbol.Flatten(data=anchors)
-        anchor_layers.append(anchors)
 
     loc_preds = mx.symbol.Concat(*loc_pred_layers, num_args=len(loc_pred_layers), \
         dim=1, name="multibox_loc_pred")
