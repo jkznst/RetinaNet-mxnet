@@ -1,6 +1,23 @@
 import mxnet as mx
 import numpy as np
 
+@mx.init.register
+class FocalBiasInit(mx.init.Initializer):
+    """
+    Initialize bias according to Focal Loss
+    """
+    def __init__(self, num_classes, pi=0.01):
+        super(FocalBiasInit, self).__init__(num_classes=num_classes, pi=pi)
+        self._num_classes = num_classes
+        self._pi = pi
+
+    def _init_weight(self, name, arr):
+        data = np.full((arr.size, ), -np.log((1.0 - self._pi) / self._pi))
+        data = np.reshape(data, (-1, self._num_classes))
+        data[:, 0] = 0
+        arr[:] = data.ravel()
+
+
 def conv_act_layer(from_layer, name, num_filter, kernel=(1,1), pad=(0,0), \
     stride=(1,1), act_type="relu", use_batchnorm=False):
     """
@@ -301,7 +318,7 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
     cls_score_weight = mx.symbol.Variable(name='cls_score_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_score_bias = mx.symbol.Variable(name='cls_score_bias',
-                                        init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '1.0'})
+                                        init=FocalBiasInit(num_classes, 0.01), attr={'__lr_mult__': '1.0'})
 
     box_conv1_weight = mx.symbol.Variable(name='box_conv1_weight',
                                           init=mx.init.Normal(sigma=0.01))
@@ -326,7 +343,7 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
     box_pred_weight = mx.symbol.Variable(name='box_pred_weight',
                                          init=mx.init.Normal(sigma=0.01))
     box_pred_bias = mx.symbol.Variable(name='box_pred_bias',
-                                       init=mx.init.Constant(-np.log(99.)), attr={'__lr_mult__': '1.0'})
+                                       init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
 
     for k, from_layer in enumerate(from_layers):
         from_name = from_layer.name

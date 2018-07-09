@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--epoch', dest='epoch', help='epoch of pretrained model',
                         default=0, type=int)
     parser.add_argument('--prefix', dest='prefix', help='new model prefix',
-                        default=os.path.join(os.getcwd(), 'output', 'exp-OHEM', 'retina'), type=str)
+                        default=os.path.join(os.getcwd(), 'output', 'exp-FL', 'retina'), type=str)
     parser.add_argument('--gpus', dest='gpus', help='GPU devices to train with',
                         default='3', type=str)
     parser.add_argument('--begin-epoch', dest='begin_epoch', help='begin epoch of training',
@@ -42,9 +42,9 @@ def parse_args():
                         help='set image shape')
     parser.add_argument('--label-width', dest='label_width', type=int, default=350,
                         help='force padding label width to sync across train and validation')
-    parser.add_argument('--optimizer', dest='optimizer', type=str, default='sgd',
+    parser.add_argument('--optimizer', dest='optimizer', type=str, default='adam',
                         help='Whether to use a different optimizer or follow the original code with sgd')
-    parser.add_argument('--lr', dest='learning_rate', type=float, default=0.01,
+    parser.add_argument('--lr', dest='learning_rate', type=float, default=0.0005,
                         help='learning rate')
     parser.add_argument('--momentum', dest='momentum', type=float, default=0.9,
                         help='momentum')
