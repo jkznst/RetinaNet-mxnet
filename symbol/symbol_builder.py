@@ -78,8 +78,8 @@ def get_symbol_train(network, num_classes, num_layers, from_layers, num_filters,
 
     tmp = mx.contrib.symbol.MultiBoxTarget(
         *[anchor_boxes, label, cls_preds], overlap_threshold=.5, \
-        ignore_label=-1, negative_mining_ratio=-1, minimum_negative_samples=minimum_negative_samples, \
-        negative_mining_thresh=.5, variances=(0.1, 0.1, 0.2, 0.2),
+        ignore_label=-1, negative_mining_ratio=1000, minimum_negative_samples=minimum_negative_samples, \
+        negative_mining_thresh=.4, variances=(0.1, 0.1, 0.2, 0.2),
         name="multibox_target")
     loc_target = tmp[0]
     loc_target_mask = tmp[1]
