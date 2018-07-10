@@ -6,7 +6,7 @@ import mxnet
 curr_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(curr_path, '..'))
 from dataset.pascal_voc import PascalVoc
-from dataset.mscoco import Coco
+from dataset.mscoco import Coco, Coco2017
 from dataset.concat_db import ConcatDB
 
 def load_pascal(image_set, year, devkit_path, shuffle=False, class_names=None, true_negative=None):
@@ -72,6 +72,33 @@ def load_coco(image_set, dirname, shuffle=False):
     else:
         return imdbs[0]
 
+
+def load_coco2017(image_set, dirname, shuffle=False):
+    """
+    wrapper function for loading ms coco dataset
+
+    Parameters:
+    ----------
+    image_set : str
+        train2017, val2017, test2017
+    dirname: str
+        root dir for coco
+    shuffle: boolean
+        initial shuffle
+    """
+    anno_files = ['instances_' + y.strip() + '.json' for y in image_set.split(',')]
+    isets = [y for y in image_set.split(',')]
+    assert anno_files, "No image set specified"
+    imdbs = []
+    for af, iset in zip(anno_files, isets):
+        af_path = os.path.join(dirname, 'annotations', af)
+        imdbs.append(Coco2017(af_path, iset, dirname, shuffle=shuffle))
+    if len(imdbs) > 1:
+        return ConcatDB(imdbs, shuffle)
+    else:
+        return imdbs[0]
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Prepare lists for dataset')
     parser.add_argument('--dataset', dest='dataset', help='dataset to use',
@@ -107,6 +134,10 @@ if __name__ == '__main__':
         db = load_coco(args.set, args.root_path, args.shuffle)
         print("saving list to disk...")
         db.save_imglist(args.target, root=args.root_path)
+    elif args.dataset == 'coco2017':
+        db = load_coco2017(args.set, args.root_path, args.shuffle)
+        print("saving list to disk...")
+        db.save_imglist(args.target, root=args.root_path)
     else:
         raise NotImplementedError("No implementation for dataset: " + args.dataset)
 
@@ -120,11 +151,11 @@ if __name__ == '__main__':
     #     os.path.abspath(args.target), os.path.abspath(args.root_path),
     #     "--shuffle", str(int(args.shuffle)), "--pack-label", "1"])
     if args.shuffle:
-        subprocess.check_call(["python", im2rec_path,
+        subprocess.check_call(["python3", im2rec_path,
                            os.path.abspath(args.target), os.path.abspath(args.root_path),
                            "--pack-label"])
     else:
-        subprocess.check_call(["python", im2rec_path,
+        subprocess.check_call(["python3", im2rec_path,
                                os.path.abspath(args.target), os.path.abspath(args.root_path),
                                "--no-shuffle", "--pack-label"])
 

@@ -9,16 +9,16 @@ from train.train_net import train_net
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a Single-shot detection network')
     parser.add_argument('--train-path', dest='train_path', help='train record to use',
-                        default=os.path.join(os.getcwd(), 'data', 'train.rec'), type=str)
+                        default=os.path.join(os.getcwd(), 'data', 'COCO2017rec', 'val.rec'), type=str)
     parser.add_argument('--train-list', dest='train_list', help='train list to use',
                         default="", type=str)
     parser.add_argument('--val-path', dest='val_path', help='validation record to use',
-                        default=os.path.join(os.getcwd(), 'data', 'val.rec'), type=str)
+                        default=os.path.join(os.getcwd(), 'data', 'COCO2017rec', 'val.rec'), type=str)
     parser.add_argument('--val-list', dest='val_list', help='validation list to use',
                         default="", type=str)
     parser.add_argument('--network', dest='network', type=str, default='resnet50',
                         help='which network to use')
-    parser.add_argument('--batch-size', dest='batch_size', type=int, default=16,
+    parser.add_argument('--batch-size', dest='batch_size', type=int, default=8,
                         help='training batch size')
     parser.add_argument('--resume', dest='resume', type=int, default=-1,
                         help='resume training from epoch n')
@@ -29,22 +29,22 @@ def parse_args():
     parser.add_argument('--epoch', dest='epoch', help='epoch of pretrained model',
                         default=0, type=int)
     parser.add_argument('--prefix', dest='prefix', help='new model prefix',
-                        default=os.path.join(os.getcwd(), 'output', 'exp-FL', 'retina'), type=str)
+                        default=os.path.join(os.getcwd(), 'output', 'exp-FL1', 'retina'), type=str)
     parser.add_argument('--gpus', dest='gpus', help='GPU devices to train with',
                         default='3', type=str)
     parser.add_argument('--begin-epoch', dest='begin_epoch', help='begin epoch of training',
                         default=0, type=int)
     parser.add_argument('--end-epoch', dest='end_epoch', help='end epoch of training',
-                        default=90, type=int)
+                        default=15, type=int)
     parser.add_argument('--frequent', dest='frequent', help='frequency of logging',
                         default=10, type=int)
     parser.add_argument('--data-shape', dest='data_shape', type=int, default=512,
                         help='set image shape')
-    parser.add_argument('--label-width', dest='label_width', type=int, default=350,
+    parser.add_argument('--label-width', dest='label_width', type=int, default=600,
                         help='force padding label width to sync across train and validation')
-    parser.add_argument('--optimizer', dest='optimizer', type=str, default='adam',
+    parser.add_argument('--optimizer', dest='optimizer', type=str, default='sgd',
                         help='Whether to use a different optimizer or follow the original code with sgd')
-    parser.add_argument('--lr', dest='learning_rate', type=float, default=0.0005,
+    parser.add_argument('--lr', dest='learning_rate', type=float, default=0.01,
                         help='learning rate')
     parser.add_argument('--momentum', dest='momentum', type=float, default=0.9,
                         help='momentum')
@@ -56,7 +56,7 @@ def parse_args():
                         help='green mean value')
     parser.add_argument('--mean-b', dest='mean_b', type=float, default=104,
                         help='blue mean value')
-    parser.add_argument('--lr-steps', dest='lr_refactor_step', type=str, default='60, 80',
+    parser.add_argument('--lr-steps', dest='lr_refactor_step', type=str, default='10, 13',
                         help='refactor learning rate at specified epochs')
     parser.add_argument('--lr-factor', dest='lr_refactor_ratio', type=str, default=0.1,
                         help='ratio to refactor learning rate')
@@ -68,14 +68,15 @@ def parse_args():
                         help='log network parameters every N iters if larger than 0')
     parser.add_argument('--pattern', dest='monitor_pattern', type=str, default=".*",
                         help='monitor parameter pattern, as regex')
-    parser.add_argument('--num-class', dest='num_class', type=int, default=20,
+    parser.add_argument('--num-class', dest='num_class', type=int, default=80,
                         help='number of classes')
     parser.add_argument('--num-example', dest='num_example', type=int, default=16551,
                         help='number of image examples')
     parser.add_argument('--class-names', dest='class_names', type=str,
-                        default='aeroplane, bicycle, bird, boat, bottle, bus, \
-                        car, cat, chair, cow, diningtable, dog, horse, motorbike, \
-                        person, pottedplant, sheep, sofa, train, tvmonitor',
+                        # default='aeroplane, bicycle, bird, boat, bottle, bus, \
+                        # car, cat, chair, cow, diningtable, dog, horse, motorbike, \
+                        # person, pottedplant, sheep, sofa, train, tvmonitor',
+                        default='dataset/names/mscoco.names',
                         help='string of comma separated names, or text filename')
     parser.add_argument('--nms', dest='nms_thresh', type=float, default=0.45,
                         help='non-maximum suppression threshold')
