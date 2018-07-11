@@ -1,7 +1,7 @@
 import mxnet as mx
 from symbol.common import multi_layer_feature, multibox_layer
 from symbol.resnet import get_resnet_conv, get_resnet_conv_down
-
+from operator_py.focal_loss_layer import *
 
 def import_module(module_name):
     """Helper function to import module"""
@@ -78,16 +78,24 @@ def get_symbol_train(network, num_classes, num_layers, from_layers, num_filters,
 
     tmp = mx.contrib.symbol.MultiBoxTarget(
         *[anchor_boxes, label, cls_preds], overlap_threshold=.5, \
+<<<<<<< HEAD
         ignore_label=-1, negative_mining_ratio=3, minimum_negative_samples=minimum_negative_samples, \
+=======
+        ignore_label=-1, negative_mining_ratio=1000, minimum_negative_samples=minimum_negative_samples, \
+>>>>>>> dev
         negative_mining_thresh=.4, variances=(0.1, 0.1, 0.2, 0.2),
         name="multibox_target")
     loc_target = tmp[0]
     loc_target_mask = tmp[1]
     cls_target = tmp[2]
 
-    cls_prob = mx.symbol.SoftmaxOutput(data=cls_preds, label=cls_target, \
-        ignore_label=-1, use_ignore=True, grad_scale=1., multi_output=True, \
-        normalization='valid', name="cls_prob")
+    """Focal loss related"""
+    cls_prob_ = mx.symbol.SoftmaxActivation(cls_preds, mode="channel")
+    cls_prob = mx.sym.Custom(cls_preds, cls_prob_, cls_target, op_type="focal_loss", name="cls_prob",
+                             gamma=2.0, alpha=0.25, normalize=True)
+    # cls_prob = mx.symbol.SoftmaxOutput(data=cls_preds, label=cls_target, \
+    #     ignore_label=-1, use_ignore=True, grad_scale=1., multi_output=True, \
+    #     normalization='valid', name="cls_prob")
     loc_loss_ = mx.symbol.smooth_l1(name="loc_loss_", \
         data=loc_target_mask * (loc_preds - loc_target), scalar=1.0)
     loc_loss = mx.symbol.MakeLoss(loc_loss_, grad_scale=1., \

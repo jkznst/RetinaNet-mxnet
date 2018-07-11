@@ -24,8 +24,8 @@ class FocalLoss(mx.operator.CustomOp):
         '''
         Reweight loss according to focal loss.
         '''
-        cls_target = mx.nd.reshape(in_data[2], (0, 1, -1))
-        p = mx.nd.pick(in_data[1], cls_target, axis=1, keepdims=True)
+        cls_target = mx.nd.reshape(in_data[2], (0, 1, -1))    # [batchsize, 1, num_anchors]
+        p = mx.nd.pick(in_data[1], cls_target, axis=1, keepdims=True)    # [batchsize, num_anchors]
 
         n_class = in_data[0].shape[1]
 
