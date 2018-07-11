@@ -318,11 +318,7 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
     cls_score_weight = mx.symbol.Variable(name='cls_score_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_score_bias = mx.symbol.Variable(name='cls_score_bias',
-<<<<<<< HEAD
                                         init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
-=======
-                                        init=FocalBiasInit(num_classes, 0.01), attr={'__lr_mult__': '1.0'})
->>>>>>> dev
 
     box_conv1_weight = mx.symbol.Variable(name='box_conv1_weight',
                                           init=mx.init.Normal(sigma=0.01))
@@ -387,20 +383,12 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
         anchors = []
         for r in ratio:
             anchor = mx.contrib.symbol.MultiBoxPrior(from_layer, sizes=size, ratios=r, \
-<<<<<<< HEAD
                                                   clip=clip, steps=step)    # [1, h x w x 3, 4]
             anchor = mx.symbol.reshape(anchor, shape=(0, -1, len(size), 4))    # [1, h x w, 3, 4]
             anchors.append(anchor)
 
         anchors = mx.symbol.concat(*anchors, dim=2)    # [1, h x w, 9, 4]
 
-=======
-                                                  clip=clip, steps=step)
-            anchor = mx.symbol.reshape(anchor, shape=(0, -1, len(size), 4))
-            anchors.append(anchor)
-
-        anchors = mx.symbol.concat(*anchors, dim=2)
->>>>>>> dev
         anchors = mx.symbol.Flatten(data=anchors)
         anchor_layers.append(anchors)
 
