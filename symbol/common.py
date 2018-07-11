@@ -318,7 +318,7 @@ def multibox_layer(from_layers, num_classes, sizes=[.2, .95],
     cls_score_weight = mx.symbol.Variable(name='cls_score_weight',
                                           init=mx.init.Normal(sigma=0.01))
     cls_score_bias = mx.symbol.Variable(name='cls_score_bias',
-                                        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
+                                        init=FocalBiasInit(num_classes, 0.01), attr={'__lr_mult__': '1.0'})
 
     box_conv1_weight = mx.symbol.Variable(name='box_conv1_weight',
                                           init=mx.init.Normal(sigma=0.01))
