@@ -15,6 +15,45 @@ res_deps = {'50': (3, 4, 6, 3), '101': (3, 4, 23, 3), '152': (3, 8, 36, 3), '200
 units = res_deps['50']
 filter_list = [256, 512, 1024, 2048]
 
+def conv_layer(from_layer, name, num_filter, kernel=(1,1), pad=(0,0), \
+    stride=(1,1), act_type=None, use_batchnorm=False):
+    """
+    wrapper for a small Convolution group
+
+    Parameters:
+    ----------
+    from_layer : mx.symbol
+        continue on which layer
+    name : str
+        base name of the new layers
+    num_filter : int
+        how many filters to use in Convolution layer
+    kernel : tuple (int, int)
+        kernel size (h, w)
+    pad : tuple (int, int)
+        padding size (h, w)
+    stride : tuple (int, int)
+        stride size (h, w)
+    act_type : str
+        activation type, can be relu...
+    use_batchnorm : bool
+        whether to use batch normalization
+
+    Returns:
+    ----------
+    (conv, relu) mx.Symbols
+    """
+    bias = mx.symbol.Variable(name="{}_conv_bias".format(name),
+        init=mx.init.Constant(0.0), attr={'__lr_mult__': '1.0'})
+    conv = mx.symbol.Convolution(data=from_layer, kernel=kernel, pad=pad, \
+        stride=stride, num_filter=num_filter, name="{}_conv".format(name), bias=bias)
+    if use_batchnorm:
+        conv = mx.symbol.BatchNorm(data=conv, name="{}_bn".format(name))
+    if act_type is not None:
+        conv = mx.symbol.Activation(data=conv, act_type=act_type, \
+            name="{}_{}".format(name, act_type))
+    return conv
+
 def residual_unit(data, num_filter, stride, dim_match, name, bottle_neck=True, bn_mom=0.9, workspace=256, memonger=False):
     """Return ResNet Unit symbol for building ResNet
     Parameters
@@ -124,28 +163,28 @@ def get_resnet_conv_down(conv_feat):
     """
     C5 = conv_feat[0]
     # C5 to P5, 1x1 dimension reduction to 256
-    P5 = mx.symbol.Convolution(data=C5, kernel=(1, 1), num_filter=256, name="P5_lateral")
+    P5 = conv_layer(from_layer=C5, kernel=(1, 1), num_filter=256, name="P5_lateral")
     P5_up = mx.symbol.UpSampling(P5, scale=2, sample_type='nearest', workspace=512, name='P5_upsampling', num_args=1)
-    P5 = mx.symbol.Convolution(data=P5, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P5")
+    P5 = conv_layer(from_layer=P5, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P5")
 
     # P5 2x upsampling + C4 = P4
-    P4_la   = mx.symbol.Convolution(data=conv_feat[1], kernel=(1, 1), num_filter=256, name="P4_lateral")
+    P4_la   = conv_layer(from_layer=conv_feat[1], kernel=(1, 1), num_filter=256, name="P4_lateral")
     P5_clip = mx.symbol.Crop(*[P5_up, P4_la], name="P4_clip")
     P4      = mx.sym.ElementWiseSum(*[P5_clip, P4_la], name="P4_sum")
     P4_up = mx.symbol.UpSampling(P4, scale=2, sample_type='nearest', workspace=512, name='P4_upsampling', num_args=1)
-    P4      = mx.symbol.Convolution(data=P4, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P4")
+    P4      = conv_layer(from_layer=P4, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P4")
 
     # P4 2x upsampling + C3 = P3
-    P3_la   = mx.symbol.Convolution(data=conv_feat[2], kernel=(1, 1), num_filter=256, name="P3_lateral")
+    P3_la   = conv_layer(from_layer=conv_feat[2], kernel=(1, 1), num_filter=256, name="P3_lateral")
     P4_clip = mx.symbol.Crop(*[P4_up, P3_la], name="P3_clip")
     P3      = mx.sym.ElementWiseSum(*[P4_clip, P3_la], name="P3_sum")
-    P3      = mx.symbol.Convolution(data=P3, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P3")
+    P3      = conv_layer(from_layer=P3, kernel=(3, 3), pad=(1, 1), num_filter=256, name="P3")
 
     # P6 2x subsampling C5
-    P6 = mx.symbol.Convolution(data=C5, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name='P6')
+    P6 = conv_layer(from_layer=C5, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name='P6')
 
     P6_relu = mx.symbol.Activation(P6, act_type='relu', name="P6_relu")
-    P7 = mx.symbol.Convolution(P6_relu, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name="P7")
+    P7 = conv_layer(from_layer=P6_relu, kernel=(3, 3), stride=(2, 2), pad=(1, 1), num_filter=256, name="P7")
 
     conv_fpn_feat = dict()
     conv_fpn_feat.update({"stride128":P7, "stride64":P6, "stride32":P5, "stride16":P4, "stride8":P3})
