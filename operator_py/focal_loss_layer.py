@@ -42,7 +42,7 @@ class FocalLoss(mx.operator.CustomOp):
         g *= (cls_target >= 0)
 
         if self.normalize:
-            g /= max(1.0, mx.nd.sum(cls_target >= 0).asscalar())
+            g /= max(1.0, mx.nd.sum(cls_target > 0).asscalar())
 
         self.assign(in_grad[0], req[0], g)
         self.assign(in_grad[1], req[1], 0)
