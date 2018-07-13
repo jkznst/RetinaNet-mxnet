@@ -12,9 +12,9 @@ class FocalBiasInit(mx.init.Initializer):
         self._pi = pi
 
     def _init_weight(self, name, arr):
-        data = np.full((arr.size, ), -np.log((1.0 - self._pi) / self._pi))
+        data = np.zeros((arr.size, ))
         data = np.reshape(data, (-1, self._num_classes))
-        data[:, 0] = 0
+        data[:, 0] = np.log((self._num_classes - 1) * (1.0 - self._pi) / self._pi)
         arr[:] = data.ravel()
 
 
