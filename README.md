@@ -24,5 +24,5 @@ Numpy, cv2 and matplotlib are required.
 |:----------------:|:---------------:|:------------:|:---------------:|:------:|:---------------|
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | OHEM | 78.8 | sgd, lr0.01 |
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | FL |  | adam, lr0.0005 |
-| ResNet-50 512x512 | COCO2017 train | COCO2017 val | OHEM |  | sgd, lr0.01 |
+| ResNet-50 512x512 | COCO2017 train | COCO2017 val | OHEM | 40.2 | sgd, lr0.01 |
 | ResNet-50 512x512 | COCO2017 train | COCO2017 val | FL |  | sgd, lr0.01 |
