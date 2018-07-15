@@ -26,7 +26,7 @@ Tested on Ubuntu 16.04, python3.5, mxnet 1.1.0
 Numpy, cv2 and matplotlib are required.
 
 ### mAP result
-|    Model    |    Training data    |    Val data    |    Strategy    |    mAP    |    Note    |
+|    Backbone    |    Training data    |    Val data    |    Strategy    |    mAP    |    Note    |
 |:----------------:|:---------------:|:------------:|:---------------:|:------:|:---------------|
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | OHEM | 76.0 | sgd, lr0.01 |
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | FL | 75.4 | sgd, lr0.01 |
