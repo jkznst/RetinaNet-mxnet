@@ -124,7 +124,7 @@ def train_net(network, train_path, num_classes, batch_size,
               voc07_metric=False, nms_topk=400, force_suppress=False,
               train_list="", val_path="", val_list="", iter_monitor=0,
               monitor_pattern=".*", log_file=None, optimizer='sgd', tensorboard=False,
-              checkpoint_period=5, min_neg_samples=0):
+              checkpoint_period=1, min_neg_samples=0):
     """
     Wrapper for training phase.
 
