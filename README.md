@@ -1,5 +1,11 @@
 # RetinaNet-mxnet
 Adapted from [SSD](https://github.com/zhreshold/mxnet-ssd) implemented by zhreshold, the results still need to be tuned. Currently we use the PASCAL VOC mAP metric which measures under IoU threshold 0.5, not the COCO AP metric.
+
+### Demo Results
+![image](https://github.com/jkznst/RetinaNet-mxnet/blob/master/demo%20results/image_rgb_6.png)
+![image](https://github.com/jkznst/RetinaNet-mxnet/blob/master/demo%20results/image_rgb_5.png)
+![image](https://github.com/jkznst/RetinaNet-mxnet/blob/master/demo%20results/image_rgb_1.png)
+
 ### Differences from SSD
 * We build FPN (P3 to P7) to replace the "multi_layer_feature" function;
 * We build cls_subnet and bbox_subnet in the "multibox_layer" function, and the bias is initialized according to the [Focal Loss paper](https://arxiv.org/abs/1708.02002) (only for FL strategy);
@@ -20,7 +26,7 @@ Tested on Ubuntu 16.04, python3.5, mxnet 1.1.0
 Numpy, cv2 and matplotlib are required.
 
 ### mAP result
-|    Model    |    Training data    |    Val data    |    Strategy    |    mAP    |    Note    |
+|    Backbone    |    Training data    |    Val data    |    Strategy    |    mAP    |    Note    |
 |:----------------:|:---------------:|:------------:|:---------------:|:------:|:---------------|
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | OHEM | 76.0 | sgd, lr0.01 |
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | FL | 75.4 | sgd, lr0.01 |
