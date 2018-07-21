@@ -32,3 +32,9 @@ Numpy, cv2 and matplotlib are required.
 | ResNet-50 512x512 | VOC07+12 trainval | VOC07 test | FL | 75.4 | sgd, lr0.01 |
 | ResNet-50 512x512 | COCO2017 train | COCO2017 val | OHEM | 40.2 | sgd, lr0.01 |
 | ResNet-50 512x512 | COCO2017 train | COCO2017 val | FL | 40.9 | sgd, lr0.01 |
+
+### Baseline [Faster RCNN](https://github.com/ijkguo/mx-rcnn)
+|    Backbone    |    Training data    |    Val data    |    mAP    |    Note    |
+|:----------------:|:---------------:|:---------------:|:----:|:---------------|
+| ResNet-50 600 | VOC07+12 trainval | VOC07 test | 74.8 | sgd, lr0.001 |
+| ResNet-50 600 | COCO2017 train | COCO2017 val | 37.9 | sgd, lr0.003 |
