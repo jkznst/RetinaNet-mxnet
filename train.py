@@ -9,11 +9,11 @@ from train.train_net import train_net
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a Single-shot detection network')
     parser.add_argument('--train-path', dest='train_path', help='train record to use',
-                        default=os.path.join(os.getcwd(), 'data', 'COCO2017rec', 'val.rec'), type=str)
+                        default=os.path.join(os.getcwd(), 'data', 'COCO2017packed', 'train.rec'), type=str)
     parser.add_argument('--train-list', dest='train_list', help='train list to use',
                         default="", type=str)
     parser.add_argument('--val-path', dest='val_path', help='validation record to use',
-                        default=os.path.join(os.getcwd(), 'data', 'COCO2017rec', 'val.rec'), type=str)
+                        default=os.path.join(os.getcwd(), 'data', 'COCO2017packed', 'val.rec'), type=str)
     parser.add_argument('--val-list', dest='val_list', help='validation list to use',
                         default="", type=str)
     parser.add_argument('--network', dest='network', type=str, default='resnet50',
@@ -78,9 +78,9 @@ def parse_args():
                         # person, pottedplant, sheep, sofa, train, tvmonitor',
                         default='dataset/names/mscoco.names',
                         help='string of comma separated names, or text filename')
-    parser.add_argument('--nms', dest='nms_thresh', type=float, default=0.45,
+    parser.add_argument('--nms', dest='nms_thresh', type=float, default=0.5,
                         help='non-maximum suppression threshold')
-    parser.add_argument('--nms_topk', dest='nms_topk', type=int, default=400,
+    parser.add_argument('--nms_topk', dest='nms_topk', type=int, default=1000,
                         help='final number of detections')
     parser.add_argument('--overlap', dest='overlap_thresh', type=float, default=0.5,
                         help='evaluation overlap threshold')
